@@ -2,27 +2,21 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>Gemini AI 소설 독해 도우미 (Dark Mode)</title>
+  <title>Gemini Novel Reader</title>
   <style>
-    /* Gemini 기본 다크모드 색상 테마 */
     body { 
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
       max-width: 850px; 
       margin: 0 auto; 
       padding: 24px; 
-      background-color: #131314; /* Gemini 메인 바탕색 */
-      color: #e3e3e3;            /* Gemini 메인 텍스트 색상 */
+      background-color: #131314; 
+      color: #e3e3e3; 
     }
     
-    h1 { 
-      text-align: center; 
-      color: #a8c7fa;            /* Gemini 시그니처 블루 */
-      font-weight: 500;
-      margin-bottom: 24px;
-    }
+    h1 { text-align: center; color: #a8c7fa; font-weight: 500; margin-bottom: 24px; }
     
     .api-box { 
-      background: #1e1e1e;       /* 카드 배경색 */
+      background: #1e1e1e; 
       padding: 16px; 
       border-radius: 12px; 
       margin-bottom: 20px; 
@@ -41,10 +35,7 @@
       color: #e3e3e3;
       font-size: 14px;
     }
-    .api-box input:focus {
-      outline: none;
-      border-color: #a8c7fa;
-    }
+    .api-box input:focus { outline: none; border-color: #a8c7fa; }
 
     .save-btn {
       padding: 10px 16px;
@@ -56,14 +47,18 @@
       font-size: 13px;
       white-space: nowrap;
     }
-    .save-btn:hover {
-      background-color: #444746;
-    }
+    .save-btn:hover { background-color: #444746; }
     
+    .input-container {
+      position: relative;
+      width: 100%;
+    }
+
     textarea { 
       width: 100%; 
-      height: 130px; 
+      height: 140px; 
       padding: 14px; 
+      padding-top: 40px;
       background-color: #1e1e1e;
       border: 1px solid #444746; 
       border-radius: 12px; 
@@ -73,17 +68,35 @@
       color: #e3e3e3;
       resize: vertical;
     }
-    textarea:focus {
-      outline: none;
-      border-color: #a8c7fa;
-    }
+    textarea:focus { outline: none; border-color: #a8c7fa; }
     
+    .clear-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      padding: 4px 10px;
+      background-color: #2b2c2e;
+      color: #8e918f;
+      border: 1px solid #444746;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 5;
+    }
+    .clear-btn:hover {
+      background-color: #ff8bcb;
+      color: #040e15;
+      border-color: #ff8bcb;
+      font-weight: 600;
+    }
+
     .submit-btn { 
       width: 100%; 
       padding: 14px; 
       margin-top: 12px; 
-      background-color: #a8c7fa; /* Gemini 버튼 메인 컬러 */
-      color: #040e15;            /* 버튼 텍스트 대비색 */
+      background-color: #a8c7fa; 
+      color: #040e15; 
       border: none; 
       border-radius: 20px; 
       font-size: 16px; 
@@ -91,9 +104,7 @@
       font-weight: 600; 
       transition: background-color 0.2s;
     }
-    .submit-btn:hover { 
-      background-color: #7cacf8; 
-    }
+    .submit-btn:hover { background-color: #7cacf8; }
     
     .sentence-block { 
       background: #1e1e1e; 
@@ -104,11 +115,7 @@
       border-left: 4px solid #a8c7fa; 
     }
     
-    .english-text { 
-      font-size: 18px; 
-      line-height: 1.6; 
-      color: #f2f2f2; 
-    }
+    .english-text { font-size: 18px; line-height: 1.6; color: #f2f2f2; }
     
     .korean-translation { 
       font-size: 16px; 
@@ -119,20 +126,14 @@
       line-height: 1.6; 
     }
     
-    /* 클릭 가능한 단어 스타일 */
     .word { 
       cursor: pointer; 
       transition: all 0.2s; 
       padding: 2px 4px; 
       border-radius: 4px; 
     }
-    .word:hover { 
-      background-color: #2a2d30; 
-      color: #a8c7fa; 
-      font-weight: 600; 
-    }
+    .word:hover { background-color: #2a2d30; color: #a8c7fa; font-weight: 600; }
 
-    /* Gemini AI 단어 심층 분석 카드 (팝업) */
     #ai-card { 
       display: none; 
       position: fixed; 
@@ -144,29 +145,30 @@
       background: #1e1e1e; 
       border-radius: 16px; 
       padding: 20px; 
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5); 
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6); 
       border: 1px solid #444746; 
       z-index: 1000; 
     }
-    .close-btn { 
-      float: right; 
-      cursor: pointer; 
-      font-size: 18px; 
-      color: #8e918f; 
+    .close-btn { float: right; cursor: pointer; font-size: 18px; color: #8e918f; }
+    .close-btn:hover { color: #e3e3e3; }
+    
+    #aiContent { font-size: 14px; line-height: 1.7; color: #e3e3e3; }
+    #aiContent h3 { color: #a8c7fa; margin-top: 0; margin-bottom: 12px; font-size: 20px; border-bottom: 1px solid #333537; padding-bottom: 8px; }
+    #streamWordContent { white-space: pre-wrap; word-break: break-word; }
+    
+    .word-label { 
+      color: #a8c7fa; 
+      font-weight: 600; 
+      margin-right: 4px; 
     }
-    .close-btn:hover {
-      color: #e3e3e3;
+    .example-box {
+      margin-top: 6px;
     }
-    #aiContent { 
-      font-size: 14px; 
-      line-height: 1.7; 
-      color: #e3e3e3;
-      white-space: pre-line; 
-    }
-    #aiContent h3 {
-      color: #a8c7fa;
-      margin-top: 0;
-      font-size: 18px;
+    .example-item {
+      margin-top: 8px;
+      color: #c4c7c5;
+      padding-left: 14px;
+      text-indent: -14px;
     }
   </style>
 </head>
@@ -180,19 +182,21 @@
     <button class="save-btn" onclick="saveApiKey()">키 저장</button>
   </div>
 
-  <textarea id="inputText" placeholder="읽으실 영문 소설 문단을 붙여넣으세요..."></textarea>
-  <button class="submit-btn" onclick="analyzeText()">Gemini로 문장 분석 및 번역하기</button>
+  <div class="input-container">
+    <button class="clear-btn" onclick="clearInput()">🗑 내용 비우기</button>
+    <textarea id="inputText" placeholder="읽으실 영문 소설 문단을 붙여넣으세요..."></textarea>
+  </div>
+  
+  <button class="submit-btn" onclick="analyzeText()">Gemini 초고속 문장 분석 및 번역</button>
 
   <div id="outputContainer"></div>
 
-  <!-- AI 단어 심층 분석 카드 -->
   <div id="ai-card">
     <span class="close-btn" onclick="closeCard()">✕</span>
     <div id="aiContent">단어를 클릭하면 Gemini의 심층 분석이 나타납니다.</div>
   </div>
 
   <script>
-    // 페이지가 로드될 때 저장된 API 키가 있으면 자동으로 불러옵니다.
     window.onload = function() {
       const savedKey = localStorage.getItem('gemini_api_key');
       if (savedKey) {
@@ -200,7 +204,6 @@
       }
     };
 
-    // API 키를 브라우저 내부에 저장하는 함수
     function saveApiKey() {
       const apiKey = document.getElementById('apiKey').value.trim();
       if (!apiKey) {
@@ -208,10 +211,15 @@
         return;
       }
       localStorage.setItem('gemini_api_key', apiKey);
-      alert('API 키가 브라우저에 저장되었습니다. 다음 접속 시 자동 입력됩니다.');
+      alert('API 키가 저장되었습니다.');
     }
 
-    // 1. 전체 문단 번역 및 문장 분할
+    function clearInput() {
+      const textarea = document.getElementById('inputText');
+      textarea.value = '';
+      textarea.focus();
+    }
+
     async function analyzeText() {
       const apiKey = document.getElementById('apiKey').value.trim();
       const text = document.getElementById('inputText').value.trim();
@@ -220,41 +228,69 @@
       if (!apiKey) { alert('Gemini API 키를 입력해주세요.'); return; }
       if (!text) { alert('텍스트를 입력해주세요.'); return; }
 
-      // 키 입력 후 저장 안 한 경우를 대비해 자동 저장 실행
       localStorage.setItem('gemini_api_key', apiKey);
+      container.innerHTML = '<p style="text-align:center; color:#8e918f; margin-top:30px;">초고속 번역 진행 중...</p>';
 
-      container.innerHTML = '<p style="text-align:center; color:#8e918f; margin-top:30px;">Gemini가 문맥을 분석하여 번역 중입니다...</p>';
+      const prompt = `Translate sentence by sentence into natural Korean. Return JSON array format: [{"en": "Sentence", "ko": "번역"}]
 
-      // 문장 분할 (정규식)
-      const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-      container.innerHTML = '';
+Text:
+${text}`;
 
-      for (let sentence of sentences) {
-        const trimmed = sentence.trim();
-        if (!trimmed) continue;
+      try {
+        const rawResponse = await fetchGemini('gemini-3.5-flash-lite', prompt, apiKey, true);
+        const parsed = JSON.parse(rawResponse);
 
-        // Gemini에게 문장 번역 요청
-        const translation = await askGemini(`다음 영문 소설 문장을 소설의 문맥과 분위기에 어울리는 자연스러운 한국어로 번역해줘:\n"${trimmed}"`, apiKey);
+        container.innerHTML = '';
+        parsed.forEach(item => {
+          const trimmed = (item.en || '').trim();
+          const translation = (item.ko || '').trim();
+          if (!trimmed) return;
 
-        // 단어 클릭 가능하게 쪼개기
-        const words = trimmed.split(' ');
-        const wordSpans = words.map(word => {
-          const cleanWord = word.replace(/[^a-zA-Z]/g, '');
-          return `<span class="word" onclick="explainWord('${cleanWord}', '${trimmed.replace(/'/g, "\\'")}')">${word}</span>`;
-        }).join(' ');
+          const words = trimmed.split(' ');
+          const wordSpans = words.map(word => {
+            const cleanWord = word.replace(/[^a-zA-Z]/g, '');
+            const safeSentence = trimmed.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `<span class="word" onclick="explainWord('${cleanWord}', '${safeSentence}')">${word}</span>`;
+          }).join(' ');
 
-        // 카드 생성
-        const block = document.createElement('div');
-        block.className = 'sentence-block';
-        block.innerHTML = `
-          <div class="english-text">${wordSpans}</div>
-          <div class="korean-translation">${translation}</div>
-        `;
-        container.appendChild(block);
+          const block = document.createElement('div');
+          block.className = 'sentence-block';
+          block.innerHTML = `
+            <div class="english-text">${wordSpans}</div>
+            <div class="korean-translation">${translation}</div>
+          `;
+          container.appendChild(block);
+        });
+      } catch (e) {
+        console.error("Analysis Error:", e);
+        container.innerHTML = `<p style="color:#ff8bcb; text-align:center;">번역 처리 중 오류가 발생했습니다 (${e.message}). 다시 시도해 주세요.</p>`;
       }
     }
 
-    // 2. 클릭한 단어 심층 설명 (Gemini 호출)
+    function formatWordDetails(text) {
+      let formatted = text
+        .replace(/발음:/g, '<span class="word-label">발음:</span>')
+        .replace(/뜻:/g, '<span class="word-label">뜻:</span>')
+        .replace(/뉘앙스:/g, '<span class="word-label">뉘앙스:</span>')
+        .replace(/예문:/g, '<span class="word-label">예문:</span>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      const parts = formatted.split('<span class="word-label">예문:</span>');
+      if (parts.length > 1) {
+        let examplePart = parts[1];
+        const lines = examplePart.split('\n').filter(line => line.trim().length > 0);
+        
+        const formattedExamples = lines.map(line => {
+          const cleanLine = line.replace(/^\s*•\s*/, '').trim();
+          return `<div class="example-item">• ${cleanLine}</div>`;
+        }).join('');
+
+        return parts[0] + '<span class="word-label">예문:</span><div class="example-box">' + formattedExamples + '</div>';
+      }
+
+      return formatted;
+    }
+
     async function explainWord(word, fullSentence) {
       const apiKey = document.getElementById('apiKey').value.trim();
       if (!word || !apiKey) return;
@@ -263,41 +299,58 @@
       const content = document.getElementById('aiContent');
       
       card.style.display = 'block';
-      content.innerHTML = `<strong style="color:#a8c7fa;">'${word}'</strong> 분석 중...`;
+      content.innerHTML = `<h3>📌 ${word}</h3><div id="streamWordContent" style="color:#8e918f;">분석 중...</div>`;
+      const streamContainer = document.getElementById('streamWordContent');
 
-      const prompt = `
-영문 소설을 읽는 중입니다. 
-문장: "${fullSentence}"
-위 문장 안에 쓰인 단어 '${word}'에 대해 아래 형식으로 설명해줘:
+      const prompt = `Word: "${word}"
+Context: "${fullSentence}"
 
-1. 발음기호
-2. 이 문장/문맥에서의 정확한 뜻과 뉘앙스
-3. 주요 용례 및 짧은 예문 1~2개
-      `;
+Format in Korean:
+발음: /IPA/ [한글 발음]
+뜻: (문맥 의미)
+뉘앙스: (짧은 설명)
+예문:
+• [영문 예문 1] (한국어 번역)
+• [영문 예문 2] (한국어 번역)`;
 
-      const result = await askGemini(prompt, apiKey);
-      content.innerHTML = `<h3>📌 ${word}</h3>` + result.replace(/\n/g, '<br>');
+      try {
+        const text = await fetchGemini('gemini-3.5-flash-lite', prompt, apiKey, false, 220);
+        streamContainer.style.color = '#e3e3e3';
+        streamContainer.innerHTML = formatWordDetails(text);
+      } catch (err) {
+        streamContainer.innerText = "단어 정보를 가져오는 중 오류가 발생했습니다.";
+      }
     }
 
-    // 3. Gemini API 통신 공통 함수
-    async function askGemini(promptText, apiKey) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    async function fetchGemini(modelName, promptText, apiKey, forceJson = false, maxTokens = null) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
       
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }]
-          })
-        });
+      const payload = {
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: {}
+      };
 
-        const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
-      } catch (error) {
-        console.error(error);
-        return '오류가 발생했습니다. API 키를 확인해주세요.';
+      if (forceJson) {
+        payload.generationConfig.responseMimeType = "application/json";
       }
+
+      if (maxTokens) {
+        payload.generationConfig.maxOutputTokens = maxTokens;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     }
 
     function closeCard() {
