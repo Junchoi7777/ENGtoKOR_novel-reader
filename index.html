@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Gemini Novel Reader</title>
+  <style>
+    body { 
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
+      max-width: 850px; 
+      margin: 0 auto; 
+      padding: 24px; 
+      background-color: #131314; 
+      color: #e3e3e3; 
+    }
+    
+    h1 { text-align: center; color: #a8c7fa; font-weight: 500; margin-bottom: 24px; }
+    
+    .api-box { 
+      background: #1e1e1e; 
+      padding: 16px; 
+      border-radius: 12px; 
+      margin-bottom: 20px; 
+      border: 1px solid #444746;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .api-box input { 
+      flex: 1;
+      padding: 10px; 
+      background-color: #131314;
+      border: 1px solid #444746; 
+      border-radius: 6px; 
+      color: #e3e3e3;
+      font-size: 14px;
+    }
+    .api-box input:focus { outline: none; border-color: #a8c7fa; }
+
+    .save-btn {
+      padding: 10px 16px;
+      background-color: #333537;
+      color: #a8c7fa;
+      border: 1px solid #444746;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .save-btn:hover { background-color: #444746; }
+    
+    .input-container {
+      position: relative;
+      width: 100%;
+    }
+
+    textarea { 
+      width: 100%; 
+      height: 140px; 
+      padding: 14px; 
+      padding-top: 40px;
+      background-color: #1e1e1e;
+      border: 1px solid #444746; 
+      border-radius: 12px; 
+      box-sizing: border-box; 
+      font-size: 16px; 
+      line-height: 1.6; 
+      color: #e3e3e3;
+      resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: #a8c7fa; }
+    
+    .clear-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      padding: 4px 10px;
+      background-color: #2b2c2e;
+      color: #8e918f;
+      border: 1px solid #444746;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 5;
+    }
+    .clear-btn:hover {
+      background-color: #ff8bcb;
+      color: #040e15;
+      border-color: #ff8bcb;
+      font-weight: 600;
+    }
+
+    .submit-btn { 
+      width: 100%; 
+      padding: 14px; 
+      margin-top: 12px; 
+      background-color: #a8c7fa; 
+      color: #040e15; 
+      border: none; 
+      border-radius: 20px; 
+      font-size: 16px; 
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: background-color 0.2s;
+    }
+    .submit-btn:hover { background-color: #7cacf8; }
+    
+    .sentence-block { 
+      background: #1e1e1e; 
+      padding: 20px; 
+      margin-top: 16px; 
+      border-radius: 12px; 
+      border: 1px solid #333537;
+      border-left: 4px solid #a8c7fa; 
+    }
+    
+    .english-text { font-size: 18px; line-height: 1.6; color: #f2f2f2; }
+    
+    .korean-translation { 
+      font-size: 16px; 
+      color: #c4c7c5; 
+      margin-top: 12px; 
+      padding-top: 12px; 
+      border-top: 1px dashed #444746; 
+      line-height: 1.6; 
+    }
+    
+    .word { 
+      cursor: pointer; 
+      transition: all 0.2s; 
+      padding: 2px 4px; 
+      border-radius: 4px; 
+    }
+    .word:hover { background-color: #2a2d30; color: #a8c7fa; font-weight: 600; }
+
+    #ai-card { 
+      display: none; 
+      position: fixed; 
+      bottom: 24px; 
+      right: 24px; 
+      width: 380px; 
+      max-height: 520px; 
+      overflow-y: auto; 
+      background: #1e1e1e; 
+      border-radius: 16px; 
+      padding: 20px; 
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6); 
+      border: 1px solid #444746; 
+      z-index: 1000; 
+    }
+    .close-btn { float: right; cursor: pointer; font-size: 18px; color: #8e918f; }
+    .close-btn:hover { color: #e3e3e3; }
+    
+    #aiContent { font-size: 14px; line-height: 1.7; color: #e3e3e3; }
+    #aiContent h3 { color: #a8c7fa; margin-top: 0; margin-bottom: 12px; font-size: 20px; border-bottom: 1px solid #333537; padding-bottom: 8px; }
+    #streamWordContent { white-space: pre-wrap; word-break: break-word; }
+    
+    .word-label { 
+      color: #a8c7fa; 
+      font-weight: 600; 
+      margin-right: 4px; 
+    }
+    .example-box {
+      margin-top: 6px;
+    }
+    .example-item {
+      margin-top: 8px;
+      color: #c4c7c5;
+      padding-left: 14px;
+      text-indent: -14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✨ Gemini Novel Reader</h1>
+
+  <div class="api-box">
+    <label for="apiKey"><strong>API Key:</strong> </label>
+    <input type="password" id="apiKey" placeholder="Gemini API 키를 입력하세요">
+    <button class="save-btn" onclick="saveApiKey()">키 저장</button>
+  </div>
+
+  <div class="input-container">
+    <button class="clear-btn" onclick="clearInput()">🗑 내용 비우기</button>
+    <textarea id="inputText" placeholder="읽으실 영문 소설 문단을 붙여넣으세요..."></textarea>
+  </div>
+  
+  <button class="submit-btn" onclick="analyzeText()">Gemini 초고속 문장 분석 및 번역</button>
+
+  <div id="outputContainer"></div>
+
+  <div id="ai-card">
+    <span class="close-btn" onclick="closeCard()">✕</span>
+    <div id="aiContent">단어를 클릭하면 Gemini의 심층 분석이 나타납니다.</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      const savedKey = localStorage.getItem('gemini_api_key');
+      if (savedKey) {
+        document.getElementById('apiKey').value = savedKey;
+      }
+    };
+
+    function saveApiKey() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!apiKey) {
+        alert('저장할 API 키를 입력해주세요.');
+        return;
+      }
+      localStorage.setItem('gemini_api_key', apiKey);
+      alert('API 키가 저장되었습니다.');
+    }
+
+    function clearInput() {
+      const textarea = document.getElementById('inputText');
+      textarea.value = '';
+      textarea.focus();
+    }
+
+    async function analyzeText() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const text = document.getElementById('inputText').value.trim();
+      const container = document.getElementById('outputContainer');
+
+      if (!apiKey) { alert('Gemini API 키를 입력해주세요.'); return; }
+      if (!text) { alert('텍스트를 입력해주세요.'); return; }
+
+      localStorage.setItem('gemini_api_key', apiKey);
+      container.innerHTML = '<p style="text-align:center; color:#8e918f; margin-top:30px;">초고속 번역 진행 중...</p>';
+
+      const prompt = `Translate sentence by sentence into natural Korean. Return JSON array format: [{"en": "Sentence", "ko": "번역"}]
+
+Text:
+${text}`;
+
+      try {
+        const rawResponse = await fetchGemini('gemini-3.5-flash-lite', prompt, apiKey, true);
+        const parsed = JSON.parse(rawResponse);
+
+        container.innerHTML = '';
+        parsed.forEach(item => {
+          const trimmed = (item.en || '').trim();
+          const translation = (item.ko || '').trim();
+          if (!trimmed) return;
+
+          const words = trimmed.split(' ');
+          const wordSpans = words.map(word => {
+            const cleanWord = word.replace(/[^a-zA-Z]/g, '');
+            const safeSentence = trimmed.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `<span class="word" onclick="explainWord('${cleanWord}', '${safeSentence}')">${word}</span>`;
+          }).join(' ');
+
+          const block = document.createElement('div');
+          block.className = 'sentence-block';
+          block.innerHTML = `
+            <div class="english-text">${wordSpans}</div>
+            <div class="korean-translation">${translation}</div>
+          `;
+          container.appendChild(block);
+        });
+      } catch (e) {
+        console.error("Analysis Error:", e);
+        container.innerHTML = `<p style="color:#ff8bcb; text-align:center;">번역 처리 중 오류가 발생했습니다 (${e.message}). 다시 시도해 주세요.</p>`;
+      }
+    }
+
+    function formatWordDetails(text) {
+      let formatted = text
+        .replace(/발음:/g, '<span class="word-label">발음:</span>')
+        .replace(/뜻:/g, '<span class="word-label">뜻:</span>')
+        .replace(/뉘앙스:/g, '<span class="word-label">뉘앙스:</span>')
+        .replace(/예문:/g, '<span class="word-label">예문:</span>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      const parts = formatted.split('<span class="word-label">예문:</span>');
+      if (parts.length > 1) {
+        let examplePart = parts[1];
+        const lines = examplePart.split('\n').filter(line => line.trim().length > 0);
+        
+        const formattedExamples = lines.map(line => {
+          const cleanLine = line.replace(/^\s*•\s*/, '').trim();
+          return `<div class="example-item">• ${cleanLine}</div>`;
+        }).join('');
+
+        return parts[0] + '<span class="word-label">예문:</span><div class="example-box">' + formattedExamples + '</div>';
+      }
+
+      return formatted;
+    }
+
+    async function explainWord(word, fullSentence) {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!word || !apiKey) return;
+
+      const card = document.getElementById('ai-card');
+      const content = document.getElementById('aiContent');
+      
+      card.style.display = 'block';
+      content.innerHTML = `<h3>📌 ${word}</h3><div id="streamWordContent" style="color:#8e918f;">분석 중...</div>`;
+      const streamContainer = document.getElementById('streamWordContent');
+
+      const prompt = `Word: "${word}"
+Context: "${fullSentence}"
+
+Format in Korean:
+발음: /IPA/ [한글 발음]
+뜻: (문맥 의미)
+뉘앙스: (짧은 설명)
+예문:
+• [영문 예문 1] (한국어 번역)
+• [영문 예문 2] (한국어 번역)`;
+
+      try {
+        const text = await fetchGemini('gemini-3.5-flash-lite', prompt, apiKey, false, 220);
+        streamContainer.style.color = '#e3e3e3';
+        streamContainer.innerHTML = formatWordDetails(text);
+      } catch (err) {
+        streamContainer.innerText = "단어 정보를 가져오는 중 오류가 발생했습니다.";
+      }
+    }
+
+    async function fetchGemini(modelName, promptText, apiKey, forceJson = false, maxTokens = null) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      
+      const payload = {
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: {}
+      };
+
+      if (forceJson) {
+        payload.generationConfig.responseMimeType = "application/json";
+      }
+
+      if (maxTokens) {
+        payload.generationConfig.maxOutputTokens = maxTokens;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    }
+
+    function closeCard() {
+      document.getElementById('ai-card').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
