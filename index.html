@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Gemini AI 소설 독해 도우미 (Dark Mode)</title>
+  <style>
+    /* Gemini 기본 다크모드 색상 테마 */
+    body { 
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
+      max-width: 850px; 
+      margin: 0 auto; 
+      padding: 24px; 
+      background-color: #131314; /* Gemini 메인 바탕색 */
+      color: #e3e3e3;            /* Gemini 메인 텍스트 색상 */
+    }
+    
+    h1 { 
+      text-align: center; 
+      color: #a8c7fa;            /* Gemini 시그니처 블루 */
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+    
+    .api-box { 
+      background: #1e1e1e;       /* 카드 배경색 */
+      padding: 16px; 
+      border-radius: 12px; 
+      margin-bottom: 20px; 
+      border: 1px solid #444746;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .api-box input { 
+      flex: 1;
+      padding: 10px; 
+      background-color: #131314;
+      border: 1px solid #444746; 
+      border-radius: 6px; 
+      color: #e3e3e3;
+      font-size: 14px;
+    }
+    .api-box input:focus {
+      outline: none;
+      border-color: #a8c7fa;
+    }
+
+    .save-btn {
+      padding: 10px 16px;
+      background-color: #333537;
+      color: #a8c7fa;
+      border: 1px solid #444746;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .save-btn:hover {
+      background-color: #444746;
+    }
+    
+    textarea { 
+      width: 100%; 
+      height: 130px; 
+      padding: 14px; 
+      background-color: #1e1e1e;
+      border: 1px solid #444746; 
+      border-radius: 12px; 
+      box-sizing: border-box; 
+      font-size: 16px; 
+      line-height: 1.6; 
+      color: #e3e3e3;
+      resize: vertical;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #a8c7fa;
+    }
+    
+    .submit-btn { 
+      width: 100%; 
+      padding: 14px; 
+      margin-top: 12px; 
+      background-color: #a8c7fa; /* Gemini 버튼 메인 컬러 */
+      color: #040e15;            /* 버튼 텍스트 대비색 */
+      border: none; 
+      border-radius: 20px; 
+      font-size: 16px; 
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: background-color 0.2s;
+    }
+    .submit-btn:hover { 
+      background-color: #7cacf8; 
+    }
+    
+    .sentence-block { 
+      background: #1e1e1e; 
+      padding: 20px; 
+      margin-top: 16px; 
+      border-radius: 12px; 
+      border: 1px solid #333537;
+      border-left: 4px solid #a8c7fa; 
+    }
+    
+    .english-text { 
+      font-size: 18px; 
+      line-height: 1.6; 
+      color: #f2f2f2; 
+    }
+    
+    .korean-translation { 
+      font-size: 16px; 
+      color: #c4c7c5; 
+      margin-top: 12px; 
+      padding-top: 12px; 
+      border-top: 1px dashed #444746; 
+      line-height: 1.6; 
+    }
+    
+    /* 클릭 가능한 단어 스타일 */
+    .word { 
+      cursor: pointer; 
+      transition: all 0.2s; 
+      padding: 2px 4px; 
+      border-radius: 4px; 
+    }
+    .word:hover { 
+      background-color: #2a2d30; 
+      color: #a8c7fa; 
+      font-weight: 600; 
+    }
+
+    /* Gemini AI 단어 심층 분석 카드 (팝업) */
+    #ai-card { 
+      display: none; 
+      position: fixed; 
+      bottom: 24px; 
+      right: 24px; 
+      width: 380px; 
+      max-height: 520px; 
+      overflow-y: auto; 
+      background: #1e1e1e; 
+      border-radius: 16px; 
+      padding: 20px; 
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5); 
+      border: 1px solid #444746; 
+      z-index: 1000; 
+    }
+    .close-btn { 
+      float: right; 
+      cursor: pointer; 
+      font-size: 18px; 
+      color: #8e918f; 
+    }
+    .close-btn:hover {
+      color: #e3e3e3;
+    }
+    #aiContent { 
+      font-size: 14px; 
+      line-height: 1.7; 
+      color: #e3e3e3;
+      white-space: pre-line; 
+    }
+    #aiContent h3 {
+      color: #a8c7fa;
+      margin-top: 0;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✨ Gemini Novel Reader</h1>
+
+  <div class="api-box">
+    <label for="apiKey"><strong>API Key:</strong> </label>
+    <input type="password" id="apiKey" placeholder="Gemini API 키를 입력하세요">
+    <button class="save-btn" onclick="saveApiKey()">키 저장</button>
+  </div>
+
+  <textarea id="inputText" placeholder="읽으실 영문 소설 문단을 붙여넣으세요..."></textarea>
+  <button class="submit-btn" onclick="analyzeText()">Gemini로 문장 분석 및 번역하기</button>
+
+  <div id="outputContainer"></div>
+
+  <!-- AI 단어 심층 분석 카드 -->
+  <div id="ai-card">
+    <span class="close-btn" onclick="closeCard()">✕</span>
+    <div id="aiContent">단어를 클릭하면 Gemini의 심층 분석이 나타납니다.</div>
+  </div>
+
+  <script>
+    // 페이지가 로드될 때 저장된 API 키가 있으면 자동으로 불러옵니다.
+    window.onload = function() {
+      const savedKey = localStorage.getItem('gemini_api_key');
+      if (savedKey) {
+        document.getElementById('apiKey').value = savedKey;
+      }
+    };
+
+    // API 키를 브라우저 내부에 저장하는 함수
+    function saveApiKey() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!apiKey) {
+        alert('저장할 API 키를 입력해주세요.');
+        return;
+      }
+      localStorage.setItem('gemini_api_key', apiKey);
+      alert('API 키가 브라우저에 저장되었습니다. 다음 접속 시 자동 입력됩니다.');
+    }
+
+    // 1. 전체 문단 번역 및 문장 분할
+    async function analyzeText() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const text = document.getElementById('inputText').value.trim();
+      const container = document.getElementById('outputContainer');
+
+      if (!apiKey) { alert('Gemini API 키를 입력해주세요.'); return; }
+      if (!text) { alert('텍스트를 입력해주세요.'); return; }
+
+      // 키 입력 후 저장 안 한 경우를 대비해 자동 저장 실행
+      localStorage.setItem('gemini_api_key', apiKey);
+
+      container.innerHTML = '<p style="text-align:center; color:#8e918f; margin-top:30px;">Gemini가 문맥을 분석하여 번역 중입니다...</p>';
+
+      // 문장 분할 (정규식)
+      const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+      container.innerHTML = '';
+
+      for (let sentence of sentences) {
+        const trimmed = sentence.trim();
+        if (!trimmed) continue;
+
+        // Gemini에게 문장 번역 요청
+        const translation = await askGemini(`다음 영문 소설 문장을 소설의 문맥과 분위기에 어울리는 자연스러운 한국어로 번역해줘:\n"${trimmed}"`, apiKey);
+
+        // 단어 클릭 가능하게 쪼개기
+        const words = trimmed.split(' ');
+        const wordSpans = words.map(word => {
+          const cleanWord = word.replace(/[^a-zA-Z]/g, '');
+          return `<span class="word" onclick="explainWord('${cleanWord}', '${trimmed.replace(/'/g, "\\'")}')">${word}</span>`;
+        }).join(' ');
+
+        // 카드 생성
+        const block = document.createElement('div');
+        block.className = 'sentence-block';
+        block.innerHTML = `
+          <div class="english-text">${wordSpans}</div>
+          <div class="korean-translation">${translation}</div>
+        `;
+        container.appendChild(block);
+      }
+    }
+
+    // 2. 클릭한 단어 심층 설명 (Gemini 호출)
+    async function explainWord(word, fullSentence) {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!word || !apiKey) return;
+
+      const card = document.getElementById('ai-card');
+      const content = document.getElementById('aiContent');
+      
+      card.style.display = 'block';
+      content.innerHTML = `<strong style="color:#a8c7fa;">'${word}'</strong> 분석 중...`;
+
+      const prompt = `
+영문 소설을 읽는 중입니다. 
+문장: "${fullSentence}"
+위 문장 안에 쓰인 단어 '${word}'에 대해 아래 형식으로 설명해줘:
+
+1. 발음기호
+2. 이 문장/문맥에서의 정확한 뜻과 뉘앙스
+3. 주요 용례 및 짧은 예문 1~2개
+      `;
+
+      const result = await askGemini(prompt, apiKey);
+      content.innerHTML = `<h3>📌 ${word}</h3>` + result.replace(/\n/g, '<br>');
+    }
+
+    // 3. Gemini API 통신 공통 함수
+    async function askGemini(promptText, apiKey) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }]
+          })
+        });
+
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+      } catch (error) {
+        console.error(error);
+        return '오류가 발생했습니다. API 키를 확인해주세요.';
+      }
+    }
+
+    function closeCard() {
+      document.getElementById('ai-card').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
