@@ -154,18 +154,18 @@
     .close-btn { float: right; cursor: pointer; font-size: 18px; color: #8e918f; }
     .close-btn:hover { color: #e3e3e3; }
 
-    /* 좌측 하단 네모난 플로팅 닫기 버튼 */
+    /* 좌측 하단 네모난 플로팅 닫기 버튼 (위아래 2배 확장) */
     #floating-close-btn {
       display: none;
       position: fixed;
       bottom: 24px;
       left: 24px;
-      padding: 12px 18px;
+      padding: 24px 20px; /* 위아래 패딩 2배 확대 */
       background-color: #2a2d30;
       color: #a8c7fa;
       border: 1px solid #444746;
-      border-radius: 8px; /* 네모난 스타일 */
-      font-size: 14px;
+      border-radius: 10px; 
+      font-size: 18px; /* 글자 크기 확대 */
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 4px 16px rgba(0,0,0,0.5);
@@ -330,7 +330,6 @@ ${text}`;
       const floatBtn = document.getElementById('floating-close-btn');
       const content = document.getElementById('aiContent');
       
-      // 단어 카드 및 좌측 플로팅 닫기 버튼 활성화
       card.style.display = 'block';
       floatBtn.style.display = 'block';
 
@@ -388,7 +387,6 @@ Format in Korean:
       return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     }
 
-    // 카드 팝업 및 플로팅 버튼 동시 닫기
     function closeCard() {
       document.getElementById('ai-card').style.display = 'none';
       document.getElementById('floating-close-btn').style.display = 'none';
