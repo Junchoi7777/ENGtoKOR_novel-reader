@@ -77,7 +77,6 @@
       padding: 14px 0;
       border: none;
       border-radius: 12px;
-      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -85,17 +84,9 @@
       white-space: nowrap;
     }
 
-    /* 초록색: 붙여넣기 (소형) */
-    .btn-paste {
-      flex: 1;
-      background-color: #6dd585;
-      color: #040e15;
-    }
-    .btn-paste:hover { background-color: #55be6d; }
-
-    /* 파란색: 번역 (확대) */
+    /* 파란색: 번역 (대형) */
     .btn-submit { 
-      flex: 2.5;
+      flex: 3.5;
       background-color: #a8c7fa; 
       color: #040e15; 
       font-size: 16px;
@@ -107,6 +98,7 @@
       flex: 1;
       background-color: #ff8bcb;
       color: #040e15;
+      font-size: 15px;
     }
     .btn-clear:hover { background-color: #f76bb8; }
 
@@ -143,6 +135,7 @@
     }
     .word:hover { background-color: #2a2d30; color: #a8c7fa; font-weight: 600; }
 
+    /* 단어 분석 팝업 (우측 하단) */
     #ai-card { 
       display: none; 
       position: fixed; 
@@ -160,6 +153,29 @@
     }
     .close-btn { float: right; cursor: pointer; font-size: 18px; color: #8e918f; }
     .close-btn:hover { color: #e3e3e3; }
+
+    /* 좌측 하단 네모난 플로팅 닫기 버튼 */
+    #floating-close-btn {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      padding: 12px 18px;
+      background-color: #2a2d30;
+      color: #a8c7fa;
+      border: 1px solid #444746;
+      border-radius: 8px; /* 네모난 스타일 */
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      z-index: 1001;
+      transition: all 0.2s;
+    }
+    #floating-close-btn:hover {
+      background-color: #333537;
+      border-color: #a8c7fa;
+    }
     
     #aiContent { font-size: 14px; line-height: 1.7; color: #e3e3e3; }
     #aiContent h3 { color: #a8c7fa; margin-top: 0; margin-bottom: 12px; font-size: 20px; border-bottom: 1px solid #333537; padding-bottom: 8px; }
@@ -194,17 +210,20 @@
   <textarea id="inputText" placeholder="읽으실 영문 소설 문단을 붙여넣으세요..."></textarea>
   
   <div class="button-group">
-    <button class="action-btn btn-paste" onclick="pasteText()">📋 붙여넣기</button>
     <button class="action-btn btn-submit" onclick="analyzeText()">⚡ Gemini 분석 및 번역</button>
     <button class="action-btn btn-clear" onclick="clearInput()">🗑 내용 비우기</button>
   </div>
 
   <div id="outputContainer"></div>
 
+  <!-- 우측 단어 분석 팝업 -->
   <div id="ai-card">
     <span class="close-btn" onclick="closeCard()">✕</span>
     <div id="aiContent">단어를 클릭하면 Gemini의 심층 분석이 나타납니다.</div>
   </div>
+
+  <!-- 좌측 하단 네모난 플로팅 닫기 버튼 -->
+  <button id="floating-close-btn" onclick="closeCard()">✕ 팝업 닫기</button>
 
   <script>
     window.onload = function() {
@@ -224,21 +243,11 @@
       alert('API 키가 저장되었습니다.');
     }
 
-    async function pasteText() {
-      try {
-        const text = await navigator.clipboard.readText();
-        const textarea = document.getElementById('inputText');
-        textarea.value = text;
-        textarea.focus();
-      } catch (err) {
-        alert('클립보드 접근 권한이 없거나 지원하지 않는 브라우저입니다.');
-      }
-    }
-
     function clearInput() {
       const textarea = document.getElementById('inputText');
       textarea.value = '';
       document.getElementById('outputContainer').innerHTML = '';
+      closeCard();
       textarea.focus();
     }
 
@@ -318,9 +327,13 @@ ${text}`;
       if (!word || !apiKey) return;
 
       const card = document.getElementById('ai-card');
+      const floatBtn = document.getElementById('floating-close-btn');
       const content = document.getElementById('aiContent');
       
+      // 단어 카드 및 좌측 플로팅 닫기 버튼 활성화
       card.style.display = 'block';
+      floatBtn.style.display = 'block';
+
       content.innerHTML = `<h3>📌 ${word}</h3><div id="streamWordContent" style="color:#8e918f;">분석 중...</div>`;
       const streamContainer = document.getElementById('streamWordContent');
 
@@ -375,8 +388,10 @@ Format in Korean:
       return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     }
 
+    // 카드 팝업 및 플로팅 버튼 동시 닫기
     function closeCard() {
       document.getElementById('ai-card').style.display = 'none';
+      document.getElementById('floating-close-btn').style.display = 'none';
     }
   </script>
 </body>
